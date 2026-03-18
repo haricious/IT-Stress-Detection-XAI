@@ -1,53 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>SIXXIS | Stress Detection AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center">
-    <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700">
-        <h1 class="text-3xl font-extrabold text-blue-400 mb-2">Stress Detector</h1>
-        <p class="text-slate-400 mb-8 text-sm">Enterprise-grade AI Stress Analysis Engine</p>
-
-        <form action="/predict" method="post" class="space-y-4">
-            <div>
-                <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Daily Work Hours</label>
-                <input type="number" name="work_hours" step="0.1" class="w-full bg-slate-700 border-none rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500" required>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Sleep (Hrs)</label>
-                    <input type="number" name="sleep_hours" step="0.1" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
-                </div>
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Tech Use (Hrs)</label>
-                    <input type="number" name="tech_usage" step="0.1" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Exercise (Min)</label>
-                    <input type="number" name="physical_activity" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
-                </div>
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Social Gap (1-10)</label>
-                    <input type="number" name="social_gap" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Deadline Pressure (1-10)</label>
-                <input type="number" name="deadline_pressure" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
-            </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition duration-200">RUN DIAGNOSTICS</button>
-        </form>
-
-        {% if prediction_text %}
-        <div class="mt-8 p-4 bg-slate-900 rounded-xl border border-slate-700 text-center">
-            <p class="text-sm text-slate-400">Analysis Result:</p>
-            <p class="text-xl font-bold {{ text_color }} mt-1">{{ prediction_text }}</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SIXXIS | XAI Stress Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  </head>
+  <body>
+    <div class="bg-ambient" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div class="brand-text">
+            <h1>Stress Check-in</h1>
+            <p class="muted">Deep Learning & XAI</p>
+          </div>
         </div>
-        {% endif %}
-    </div>
-</body>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-icon" type="button" id="themeBtn">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1.25a1 1 0 0 1 2 0V21a1 1 0 0 1-1 1Zm0-18a1 1 0 0 1-1-1V1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1Zm11 9a1 1 0 0 1-1 1h-1.25a1 1 0 1 1 0-2H22a1 1 0 0 1 1 1ZM4.25 13a1 1 0 0 1-1 1H1a1 1 0 1 1 0-2h2.25a1 1 0 0 1 1 1Zm16.2 6.45a1 1 0 0 1-1.42 0l-.88-.88a1 1 0 0 1 1.42-1.42l.88.88a1 1 0 0 1 0 1.42ZM6.27 5.56a1 1 0 0 1-1.42 0l-.88-.88A1 1 0 1 1 5.39 3.26l.88.88a1 1 0 0 1 0 1.42ZM19.15 5.56a1 1 0 0 1 0-1.42l.88-.88a1 1 0 1 1 1.42 1.42l-.88.88a1 1 0 0 1-1.42 0ZM4.85 19.45a1 1 0 0 1 0-1.42l.88-.88a1 1 0 1 1 1.42 1.42l-.88.88a1 1 0 0 1-1.42 0Z"/></svg>
+          </button>
+          <button class="btn btn-secondary" type="button" id="fillSampleBtn">Sample</button>
+          <button class="btn btn-ghost" type="button" id="resetBtn">Reset</button>
+        </div>
+      </header>
+
+      <section class="card">
+        <form id="stressForm" novalidate>
+          <div class="grid">
+            <div class="field"><label for="work_hours">Work hours</label><input id="work_hours" type="number" step="0.1" placeholder="8"></div>
+            <div class="field"><label for="sleep_hours">Sleep</label><input id="sleep_hours" type="number" step="0.1" placeholder="7"></div>
+            <div class="field"><label for="tech_usage">Tech use</label><input id="tech_usage" type="number" step="0.1" placeholder="10"></div>
+            <div class="field"><label for="physical_activity">Exercise</label><input id="physical_activity" type="number" placeholder="30"></div>
+            <div class="field field-wide">
+              <div class="label-row"><label for="social_gap">Social gap</label><output id="social_gap_out">5</output></div>
+              <input id="social_gap" type="range" min="1" max="10" value="5">
+            </div>
+            <div class="field field-wide">
+              <div class="label-row"><label for="deadline_pressure">Deadline pressure</label><output id="deadline_pressure_out">5</output></div>
+              <input id="deadline_pressure" type="range" min="1" max="10" value="5">
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn"><span class="btn-label">Analyze with XAI</span></button>
+          </div>
+          <p class="form-error" id="formError"></p>
+        </form>
+      </section>
+
+      {% set s = status|default('') %}
+      {% set p_text = prediction_text|default('') %}
+      {% set plot = xai_plot|default('') %}
+
+      <section class="card result {{ 'is-visible' if p_text else '' }}" id="resultCard">
+        <div class="result-head">
+          <h2>Analysis Result</h2>
+          <span class="badge {{ 'badge-' + s if s else '' }}" id="resultBadge">{{ s|upper if s else '—' }}</span>
+        </div>
+        <div class="meter"><div class="meter-fill {{ 'meter-' + s if s else '' }}" id="resultMeter"></div></div>
+        
+        <p class="result-message {{ 'msg-' + s if s else '' }}" id="resultMessage">{{ p_text if p_text else 'Submit to see result' }}</p>
+        <div class="result-meta muted" id="resultMeta">{{ detail|default('Reasoning will appear here.') }}</div>
+
+        <div id="xaiContainer" class="xai-container {{ 'hidden' if not plot else '' }}" style="margin-top: 24px; border-top: 1px solid var(--stroke); padding-top: 20px;">
+          <h3 style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 12px;">
+            AI Reasoning (SHAP Analysis)
+          </h3>
+          <img id="xaiPlot" src="{{ plot if plot else '#' }}" alt="XAI Reasoning Plot" style="width: 100%; border-radius: 12px; border: 1px solid var(--stroke); background: white;">
+          <p class="muted" style="font-size: 11px; margin-top: 10px; line-height: 1.4;">
+            <strong>Interpretation:</strong> Red blocks show factors increasing stress; Blue blocks show factors decreasing it.
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>
