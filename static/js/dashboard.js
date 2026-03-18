@@ -13,44 +13,31 @@
     const xaiContainer = document.getElementById("xaiContainer");
     const xaiPlot = document.getElementById("xaiPlot");
 
-    const themeBtn = document.getElementById("themeBtn");
-    const fillSampleBtn = document.getElementById("fillSampleBtn");
-    const resetBtn = document.getElementById("resetBtn");
-
-    const fields = [
-        { id: "work_hours", min: 0, max: 24 },
-        { id: "sleep_hours", min: 0, max: 16 },
-        { id: "tech_usage", min: 0, max: 24 },
-        { id: "physical_activity", min: 0, max: 300 },
-        { id: "social_gap", min: 1, max: 10 },
-        { id: "deadline_pressure", min: 1, max: 10 },
-    ];
-
     const setBusy = (isBusy) => {
         if (!submitBtn) return;
         submitBtn.disabled = isBusy;
         const label = submitBtn.querySelector(".btn-label");
-        if (label) label.textContent = isBusy ? "Neural Engine Computing..." : "Analyze with XAI";
-        submitBtn.style.opacity = isBusy ? "0.7" : "1";
-        submitBtn.style.cursor = isBusy ? "not-allowed" : "pointer";
+        if (label) {
+            label.textContent = isBusy ? "Neural Engine Computing..." : "Analyze with XAI";
+        }
+        submitBtn.style.opacity = isBusy ? "0.6" : "1";
     };
 
     const applyMeter = (status) => {
         if (!resultMeter) return;
-        const widths = { high: 86, warning: 55, stable: 34 };
+        const widths = { high: 88, warning: 55, stable: 32 };
         resultMeter.style.width = '0%';
         setTimeout(() => {
             resultMeter.className = `meter-fill meter-${status}`;
             resultMeter.style.width = `${widths[status] || 0}%`;
-        }, 100);
+        }, 50);
     };
 
     const updateUI = (data) => {
-        // 1. Reveal Result Card
+        // STEP A: Show text results instantly
         resultCard.style.display = "block";
-        setTimeout(() => resultCard.classList.add("is-visible"), 10);
+        resultCard.classList.add("is-visible");
 
-        // 2. Update Basic Info
         resultBadge.className = `badge badge-${data.status}`;
         resultBadge.textContent = data.status.toUpperCase();
         resultMessage.className = `result-message msg-${data.status}`;
@@ -59,34 +46,36 @@
 
         applyMeter(data.status);
 
-        // 3. Handle XAI Plot (The slow part)
+        // STEP B: Handle XAI Plot (Fades in when ready)
         if (data.xai_plot && xaiPlot) {
-            // This event fires only when the browser has finished downloading the plot image
             xaiPlot.onload = () => {
-                xaiContainer.classList.remove("hidden");
                 xaiContainer.style.display = "block";
-                setBusy(false); // Task complete
-                resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                xaiContainer.classList.remove("hidden");
+                setBusy(false); 
+                console.log("-> [XAI] Plot Loaded.");
             };
             xaiPlot.src = data.xai_plot;
         } else {
             setBusy(false);
         }
+
+        resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         formError.textContent = "";
 
-        // Simple validation
         const payload = {};
-        for (const f of fields) {
-            const val = parseFloat(document.getElementById(f.id).value);
+        const fieldIds = ["work_hours", "sleep_hours", "tech_usage", "physical_activity", "social_gap", "deadline_pressure"];
+        
+        for (const id of fieldIds) {
+            const val = parseFloat(document.getElementById(id).value);
             if (isNaN(val)) {
-                formError.textContent = "Please fill all fields.";
+                formError.textContent = "All inputs are required.";
                 return;
             }
-            payload[f.id] = val;
+            payload[id] = val;
         }
 
         setBusy(true);
@@ -98,44 +87,28 @@
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) throw new Error("Neural Engine Error");
+            if (!response.ok) throw new Error("Server Error");
             const data = await response.json();
             updateUI(data);
 
         } catch (err) {
-            formError.textContent = "Server is busy. Try again in 5 seconds.";
+            formError.textContent = "System busy. Please retry.";
             setBusy(false);
         }
     });
 
-    // Utilities
-    themeBtn?.addEventListener("click", () => {
+    // Theme & Sliders
+    document.getElementById("themeBtn")?.addEventListener("click", () => {
         const next = root.dataset.theme === "dark" ? "light" : "dark";
         root.dataset.theme = next;
-        localStorage.setItem("theme", next);
     });
 
-    fillSampleBtn?.addEventListener("click", () => {
-        const samples = [10.5, 4, 12, 15, 8, 9]; 
-        fields.forEach((f, i) => {
-            document.getElementById(f.id).value = samples[i];
-            const out = document.getElementById(`${f.id}_out`);
-            if (out) out.textContent = samples[i];
+    document.getElementById("fillSampleBtn")?.addEventListener("click", () => {
+        const vals = [9.5, 4.5, 11, 10, 8, 9];
+        fieldIds.forEach((id, i) => {
+            document.getElementById(id).value = vals[i];
+            const out = document.getElementById(`${id}_out`);
+            if (out) out.textContent = vals[i];
         });
     });
-
-    resetBtn?.addEventListener("click", () => {
-        form.reset();
-        resultCard.classList.remove("is-visible");
-        xaiContainer.style.display = "none";
-        xaiContainer.classList.add("hidden");
-    });
-
-    fields.filter(f => f.max === 10).forEach(f => {
-        const input = document.getElementById(f.id);
-        const out = document.getElementById(`${f.id}_out`);
-        input?.addEventListener("input", () => out.textContent = input.value);
-    });
-
-    root.dataset.theme = localStorage.getItem("theme") || "light";
 })();
