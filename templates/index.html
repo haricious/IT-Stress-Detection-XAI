@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SIXXIS | Stress Detection AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center">
+    <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700">
+        <h1 class="text-3xl font-extrabold text-blue-400 mb-2">Stress Detector</h1>
+        <p class="text-slate-400 mb-8 text-sm">Enterprise-grade AI Stress Analysis Engine</p>
+
+        <form action="/predict" method="post" class="space-y-4">
+            <div>
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Daily Work Hours</label>
+                <input type="number" name="work_hours" step="0.1" class="w-full bg-slate-700 border-none rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Sleep (Hrs)</label>
+                    <input type="number" name="sleep_hours" step="0.1" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Tech Use (Hrs)</label>
+                    <input type="number" name="tech_usage" step="0.1" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Exercise (Min)</label>
+                    <input type="number" name="physical_activity" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Social Gap (1-10)</label>
+                    <input type="number" name="social_gap" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1">Deadline Pressure (1-10)</label>
+                <input type="number" name="deadline_pressure" class="w-full bg-slate-700 border-none rounded-lg p-3" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition duration-200">RUN DIAGNOSTICS</button>
+        </form>
+
+        {% if prediction_text %}
+        <div class="mt-8 p-4 bg-slate-900 rounded-xl border border-slate-700 text-center">
+            <p class="text-sm text-slate-400">Analysis Result:</p>
+            <p class="text-xl font-bold {{ text_color }} mt-1">{{ prediction_text }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
